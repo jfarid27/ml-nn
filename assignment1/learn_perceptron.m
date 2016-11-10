@@ -47,11 +47,11 @@ num_errs = size(mistakes0,1) + size(mistakes1,1);
 num_err_history(end+1) = num_errs;
 fprintf('Number of errors in iteration %d:\t%d\n',iter,num_errs);
 fprintf(['weights:\t', mat2str(w), '\n']);
-plot_perceptron(neg_examples, pos_examples, mistakes0, mistakes1, num_err_history, w, w_dist_history);
-key = input('<Press enter to continue, q to quit.>', 's');
-if (key == 'q')
-    return;
-end
+%plot_perceptron(neg_examples, pos_examples, mistakes0, mistakes1, num_err_history, w, w_dist_history);
+%key = input('<Press enter to continue, q to quit.>', 's');
+%if (key == 'q')
+%    return;
+%end
 
 %If a generously feasible weight vector exists, record the distance
 %to it from the initial weight vector.
@@ -80,7 +80,7 @@ while (num_errs > 0)
 
     fprintf('Number of errors in iteration %d:\t%d\n',iter,num_errs);
     fprintf(['weights:\t', mat2str(w), '\n']);
-    plot_perceptron(neg_examples, pos_examples, mistakes0, mistakes1, num_err_history, w, w_dist_history);
+%    plot_perceptron(neg_examples, pos_examples, mistakes0, mistakes1, num_err_history, w, w_dist_history);
     key = input('<Press enter to continue, q to quit.>', 's');
     if (key == 'q')
         break;
@@ -111,6 +111,7 @@ for i=1:num_neg_examples
     x = this_case'; %Hint
     activation = this_case*w;
     if (activation >= 0)
+        w = w - x
         %YOUR CODE HERE
     end
 end
@@ -119,7 +120,7 @@ for i=1:num_pos_examples
     x = this_case';
     activation = this_case*w;
     if (activation < 0)
-        %YOUR CODE HERE
+        w = w + x
     end
 end
 
