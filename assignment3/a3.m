@@ -144,8 +144,36 @@ function ret = d_loss_by_d_model(model, data, wd_coefficient)
   % The returned object is supposed to be exactly like parameter <model>, i.e. it has fields ret.input_to_hid and ret.hid_to_class. However, the contents of those matrices are gradients (d loss by d model parameter), instead of model parameters.
 	 
   % This is the only function that you're expected to change. Right now, it just returns a lot of zeros, which is obviously not the correct output. Your job is to replace that by a correct computation.
-  ret.input_to_hid = model.input_to_hid * 0;
-  ret.hid_to_class = model.hid_to_class * 0;
+
+
+  n_cases = size(data.inputs, 2);
+
+  hid_input = model.input_to_hid * data.inputs;
+  hid_output = logistic(hid_input);
+  class_input = model.hid_to_class * hid_output;  
+  class_normalizer = log_sum_exp_over_rows(class_input);
+  log_class_prob = class_input - repmat(class_normalizer, [size(class_input, 1), 1]);
+  class_prob = exp(log_class_prob);
+
+  ret.hid_to_class = zeros(size(model.hid_to_class));
+  ret.input_to_hid = zeros(size(model.input_to_hid));
+
+  for m=1:n_cases
+
+    % natural_softmax_error =  (class_prob(:,m) - data.targets(:,m)) .* class_prob(:,m) .* (1 - class_prob(:,m));
+    natural_softmax_error =  (class_prob(:,m) - data.targets(:,m));
+    activation_hid = hid_output(:, m);
+    ret.hid_to_class += (natural_softmax_error * activation_hid' );
+
+    natural_logistic_error = model.hid_to_class' * natural_softmax_error .* ( hid_output(:,m) .* (1 - hid_output(:,m)) ) ;
+  ret.input_to_hid += natural_logistic_error * data.inputs(:, m)';
+  end
+
+  ret.hid_to_class += wd_coefficient * model.hid_to_class;
+  ret.hid_to_class *= 1 / n_cases;
+  ret.input_to_hid += wd_coefficient * model.input_to_hid;
+  ret.input_to_hid *= 1 / n_cases;
+
 end
 
 function ret = model_to_theta(model)
