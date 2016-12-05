@@ -1,4 +1,4 @@
-function a3(wd_coefficient, n_hid, n_iters, learning_rate, momentum_multiplier, do_early_stopping, mini_batch_size)
+function a3(wd_coefficient, n_hid, n_iters, learning_rate, momentum_multiplier, do_early_stopping, mini_batch_size, do_plot)
   warning('error', 'Octave:broadcast');
   if exist('page_output_immediately'), page_output_immediately(1); end
   more off;
@@ -36,7 +36,7 @@ function a3(wd_coefficient, n_hid, n_iters, learning_rate, momentum_multiplier, 
       best_so_far.validation_loss = validation_data_losses(end);
       best_so_far.after_n_iters = optimization_iteration_i;
     end
-    if mod(optimization_iteration_i, round(n_iters/10)) == 0,
+    if mod(optimization_iteration_i, round(n_iters/10)) == 0 & do_plot,
       fprintf('After %d optimization iterations, training data loss is %f, and validation data loss is %f\n', optimization_iteration_i, training_data_losses(end), validation_data_losses(end));
     end
   end
@@ -47,7 +47,7 @@ function a3(wd_coefficient, n_hid, n_iters, learning_rate, momentum_multiplier, 
   end
   % the optimization is finished. Now do some reporting.
   model = theta_to_model(theta);
-  if n_iters ~= 0,
+  if n_iters ~= 0 & do_plot,
     clf;
     hold on;
     plot(training_data_losses, 'b');
@@ -69,6 +69,7 @@ function a3(wd_coefficient, n_hid, n_iters, learning_rate, momentum_multiplier, 
     fprintf('The classification error rate on the %s data is %f\n', data_name, classification_performance(model, data));
   end
 end
+
 
 function test_gradient(model, data, wd_coefficient)
   base_theta = model_to_theta(model);
@@ -169,10 +170,10 @@ function ret = d_loss_by_d_model(model, data, wd_coefficient)
   ret.input_to_hid += natural_logistic_error * data.inputs(:, m)';
   end
 
-  ret.hid_to_class += wd_coefficient * model.hid_to_class;
   ret.hid_to_class *= 1 / n_cases;
-  ret.input_to_hid += wd_coefficient * model.input_to_hid;
+  ret.hid_to_class += wd_coefficient .* model.hid_to_class;
   ret.input_to_hid *= 1 / n_cases;
+  ret.input_to_hid += wd_coefficient .* model.input_to_hid;
 
 end
 
